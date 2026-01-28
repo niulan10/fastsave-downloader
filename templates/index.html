@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Downloader - Baixe sem Marca D'água</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CONFIGURAÇÕES GERAIS --- */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #7B2CBF 0%, #4CC9F0 100%); /* Roxo para Azul */
+            --secondary-color: #2c3e50;
+            --white: #ffffff;
+            --light-gray: #f8f9fa;
+            --accent: #4CC9F0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--white);
+            color: var(--secondary-color);
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER & MENU --- */
+        header {
+            background: var(--white);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between; /* Corrigido de _ para - */
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hamburger {
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #333;
+        }
+
+        /* Menu Lateral (Escondido) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 250px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            z-index: 200;
+            padding-top: 60px;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            color: #333;
+            display: block;
+            transition: 0.2s;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar a:hover {
+            background: #f0f0f0;
+            padding-left: 35px;
+            color: #7B2CBF;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* --- HERO SECTION (A PARTE ROXA) --- */
+        .hero {
+            background: var(--primary-gradient);
+            padding: 60px 20px 100px 20px;
+            text-align: center;
+            color: white;
+            border-bottom-left-radius: 50% 20px;
+            border-bottom-right-radius: 50% 20px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .downloader-box {
+            background: white;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 10px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .downloader-box input {
+            flex: 1;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1rem;
+            outline: none;
+            border-radius: 50px;
+        }
+
+        .paste-btn {
+            background: transparent;
+            color: #666;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-right: 1px solid #eee;
+        }
+
+        .download-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-left: 10px;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Opções de Formato (MP3/MP4) */
+        .format-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .radio-label {
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .radio-label input {
+            accent-color: #25F4EE;
+        }
+
+        /* --- CARDS DE BENEFÍCIOS --- */
+        .features {
+            max-width: 1000px;
+            margin: 50px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .feature-card {
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #7B2CBF;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* --- TEXTO EXPLICATIVO (SEO) --- */
+        .about-text {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            text-align: left;
+        }
+        .about-text h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+        .about-text p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #555;
+            text-align: justify;
+        }
+
+        /* --- GRADE DE RECURSOS EXTRAS (6 ÍCONES) --- */
+        .extra-features {
+            max-width: 1000px;
+            margin: 0 auto 60px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Cria colunas automáticas */
+            gap: 40px;
+            text-align: center;
+        }
+        .extra-item i {
+            font-size: 3.5rem;
+            color: #5732FB; /* Roxo azulado igual ao do print */
+            margin-bottom: 20px;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+        .extra-item:hover i {
+            transform: translateY(-10px); /* Efeito pulando ao passar o mouse */
+        }
+        .extra-item p {
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        /* --- COMO BAIXAR (PASSO A PASSO) --- */
+        .how-to {
+            background: #6a3093;
+            background: linear-gradient(to right, #6a3093, #a044ff);
+            color: white;
+            margin: 50px 20px;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .how-to h2 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .step-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.2);
+            line-height: 1;
+        }
+
+        .step-text h4 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .step-text p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* --- FAQ (PERGUNTAS FREQUENTES) --- */
+        .faq-section {
+            max-width: 900px;
+            margin: 60px auto 100px auto; /* Margem grande embaixo */
+            padding: 0 20px;
+        }
+        .faq-section h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+        .faq-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            overflow: hidden; /* Importante para a animação */
+            border: 1px solid #eee;
+        }
+        .faq-question {
+            width: 100%;
+            background: white;
+            border: none;
+            padding: 20px 25px;
+            text-align: left;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Poppins', sans-serif;
+            transition: background 0.3s;
+        }
+        .faq-question:hover {
+            background: #f8f9fa;
+        }
+        /* Ícone da seta que gira */
+        .faq-question::after {
+            content: '\f078'; /* Código do ícone chevron-down do FontAwesome */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #7B2CBF;
+            transition: transform 0.3s ease;
+        }
+        .faq-question.active::after {
+            transform: rotate(180deg); /* Gira a seta quando aberto */
+        }
+        .faq-answer {
+            max-height: 0; /* Escondido por padrão */
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #fdfdfd;
+        }
+        .faq-answer p {
+            padding: 20px 25px;
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        /* --- RESPONSIVIDADE --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.8rem; }
+            .downloader-box { flex-direction: column; padding: 20px; border-radius: 20px; }
+            .downloader-box input { width: 100%; margin-bottom: 15px; text-align: center; }
+            .paste-btn { width: 100%; justify-content: center; border-right: none; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+            .download-btn { width: 100%; }
+        }
+
+        /* Overlay para escurecer o fundo quando o menu abre */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 150;
+        }
+        .overlay.active { display: block; }
+
+/* --- RODAPÉ (FOOTER) - NOVO VISUAL --- */
+        footer {
+            background: var(--primary-gradient); /* O mesmo gradiente do topo */
+            color: white;
+            padding: 60px 20px 30px 20px;
+            text-align: center;
+            margin-top: 80px;
+            /* Um leve arredondamento no topo para ficar moderno */
+            border-top-left-radius: 30px; 
+            border-top-right-radius: 30px;
+        }
+        .footer-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: inline-block;
+            color: white; /* Logo branca para destacar no fundo roxo */
+        }
+        .footer-links {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.9); /* Branco levemente transparente */
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .footer-links a:hover {
+            color: #fff;
+            text-decoration: underline;
+            transform: translateY(-2px);
+        }
+        .footer-disclaimer {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7); /* Texto jurídico mais discreto */
+            max-width: 800px;
+            margin: 0 auto 25px auto;
+            line-height: 1.6;
+        }
+        .footer-copyright {
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 600;
+            border-top: 1px solid rgba(255, 255, 255, 0.2); /* Linha divisória sutil */
+            padding-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="overlay" onclick="toggleMenu()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="close-btn" onclick="toggleMenu()">&times;</div>
+        <a href="#" onclick="changePlatform('TikTok')"><i class="fab fa-tiktok"></i> Baixar TikTok</a>
+        <a href="#" onclick="changePlatform('Instagram')"><i class="fab fa-instagram"></i> Baixar Instagram</a>
+        <a href="#" onclick="changePlatform('YouTube')"><i class="fab fa-youtube"></i> Baixar YouTube</a>
+        <a href="#"><i class="fas fa-cog"></i> Configurações</a>
+    </div>
+
+    <header>
+        <a href="/" class="logo"><i class="fas fa-bolt"></i> FastSave</a>
+        <div class="hamburger" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1 id="hero-title">Baixar vídeo do TikTok</h1>
+        <p style="margin-bottom: 20px; opacity: 0.9;">Cole o link abaixo para baixar em HD sem marca d'água</p>
+        
+        <form action="/download" method="POST" id="downloadForm">
+            <div class="downloader-box">
+                <button type="button" class="paste-btn" onclick="pasteLink()">
+                    <i class="fas fa-paste"></i> Colar
+                </button>
+                
+                <input type="text" name="url" id="urlInput" placeholder="Cole o link do vídeo aqui..." required>
+                
+                <button type="submit" class="download-btn">
+                    Baixar <i class="fas fa-download"></i>
+                </button>
+            </div>
+
+            <div class="format-selector">
+                <label class="radio-label">
+                    <input type="radio" name="format" value="mp4" checked>
+                    <span>Vídeo (Sem marca d'água)</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="format" value="mp3">
+                    <span>Áudio (MP3)</span>
+                </label>
+            </div>
+        </form>
+    </section>
+
+   <section class="features">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-infinity"></i></div>
+            <h3>Downloads Ilimitados</h3>
+            <p>Salve quantos vídeos precisar, sem limites ou restrições diárias.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-tint-slash"></i></div>
+            <h3>Sem Marca D'água</h3>
+            <p id="feature-text">Obtenha o vídeo limpo, sem o logotipo do TikTok ou nome do usuário.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-music"></i></div>
+            <h3>MP4 e MP3</h3>
+            <p>Baixe o vídeo em alta qualidade HD ou converta apenas para música.</p>
+        </div>
+    </section>
+
+<section class="about-text">
+        <h2 id="about-title">Por que baixar vídeos do TikTok com o FastSave?</h2>
+        <div>
+            <p>O <strong>FastSave</strong> é a melhor ferramenta online para baixar vídeos sem marca d'água. Nossa tecnologia permite salvar conteúdos do TikTok, Instagram e YouTube em qualidade HD (High Definition) de forma totalmente gratuita.</p>
+            <p>Não é necessário instalar programas ou extensões. Tudo funciona direto no seu navegador: basta copiar o link, colar no campo acima e pronto! O processamento é feito em nossos servidores ultra-rápidos.</p>
+            <p>Compatível com Android, iOS (iPhone), Windows e MacOS. Baixe videos agora mesmo para criar edits, compartilhar no WhatsApp ou assistir offline.</p>
+        </div>
+    </section>
+
+    <section class="extra-features">
+        <div class="extra-item">
+            <i class="fas fa-link"></i>
+            <p>Baixar vídeo do TikTok para editar e publicar seus vídeos.</p>
+        </div>
+        <div class="extra-item">
+            <i class="fas fa-tag"></i>
+            <p>É grátis. Você pode salvar quantos vídeos do TikTok quiser.</p>
+        </div>
+        <div class="extra-item">
+            <i class="fas fa-user-slash"></i>
+            <p>Seu registro não é necessário. Basta abrir nosso site e colar o link.</p>
+        </div>
+        <div class="extra-item">
+            <i class="fas fa-bolt"></i>
+            <p>Salvar vídeos do TikTok pelo link em alta velocidade.</p>
+        </div>
+        <div class="extra-item">
+            <i class="fas fa-music"></i>
+            <p>TikTok download MP4 e arquivos MP3 de alta qualidade.</p>
+        </div>
+        <div class="extra-item">
+            <i class="fas fa-desktop"></i>
+            <p>Funciona para todos os navegadores e sistemas (Windows, Mac, Linux).</p>
+        </div>
+    </section>
+
+    <section class="how-to">
+        <h2 id="howto-title">Como baixar vídeo do TikTok sem marca d'água?</h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-text">
+                    <h4>Encontrar um vídeo</h4>
+                    <p id="howto-step1">Abra o aplicativo TikTok, escolha o vídeo e clique em "Compartilhar" > "Copiar Link".</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-text">
+                    <h4>Cole o link</h4>
+                    <p>Volte aqui no site, clique no botão "Colar" ou insira o link no campo de texto.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-text">
+                    <h4>Baixar</h4>
+                    <p>Clique no botão Baixar e aguarde alguns segundos. O arquivo será salvo no seu dispositivo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+ 
+    <section class="faq-section">
+        <h2>Perguntas Frequentes</h2>
+        
+        <div class="faq-item">
+            <button class="faq-question">Preciso pagar para baixar vídeos do TikTok?</button>
+            <div class="faq-answer">
+                <p>Não, o serviço é totalmente gratuito. Você pode baixar quantos vídeos quiser sem pagar nada e sem limites diários.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Preciso instalar extensões ou apps?</button>
+            <div class="faq-answer">
+                <p>Não. Para baixar vídeos e remover a marca d'água, você só precisa do link. Cole-o no nosso site e pronto. Funciona direto no navegador.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Onde os vídeos são salvos?</button>
+            <div class="faq-answer">
+                <p>Geralmente, os vídeos são salvos na pasta "Downloads" do seu dispositivo (Android, iOS, Windows ou Mac), a menos que você tenha alterado essa configuração no navegador.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Posso baixar vídeos em HD?</button>
+            <div class="faq-answer">
+                <p>Sim! O FastSave busca sempre a maior qualidade disponível no servidor original do TikTok, Instagram ou YouTube para te entregar o arquivo em alta definição.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Funciona no iPhone (iOS) e Android?</button>
+            <div class="faq-answer">
+                <p>Sim. O site é compatível com qualquer dispositivo móvel. No iPhone (iOS 13+), basta usar o navegador Safari e o download será salvo nos seus Arquivos.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Como converter vídeos do TikTok para MP4 online?</button>
+            <div class="faq-answer">
+                <p>É automático. Ao colar o link no FastSave e clicar em baixar, nosso sistema processa o vídeo e disponibiliza o arquivo final já convertido em formato MP4, compatível com todos os players.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Preciso de uma conta no TikTok para baixar vídeos?</button>
+            <div class="faq-answer">
+                <p>Não, você não precisa de uma conta no TikTok. Basta colar o link do vídeo no FastSave para baixar sem marca d'água. Não exigimos login nem cadastro.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Posso baixar vídeos de contas privadas do TikTok?</button>
+            <div class="faq-answer">
+                <p>Não. O FastSave respeita a privacidade dos usuários. Só é possível baixar vídeos de contas configuradas como "Públicas". Vídeos de perfis privados não podem ser acessados.</p>
+            </div>
+        </div>
+    </section>
+
+<footer>
+        <div class="footer-logo">FastSave</div>
+        
+        <div class="footer-links">
+            <a href="#" onclick="changePlatform('TikTok')">Baixar TikTok</a>
+            <a href="#" onclick="changePlatform('Instagram')">Baixar Instagram</a>
+            <a href="#" onclick="changePlatform('YouTube')">Baixar YouTube</a>
+            <a href="#">Termos de Uso</a>
+            <a href="#">Política de Privacidade</a>
+            <a href="#">Contato</a>
+        </div>
+
+        <p class="footer-disclaimer">
+            Não temos qualquer vínculo com o TikTok, ByteDance, Meta, Instagram ou Google/YouTube. 
+            O FastSave é uma ferramenta online independente projetada apenas para ajudar usuários a baixar conteúdo para uso pessoal. 
+            Todos os direitos dos vídeos pertencem aos seus respectivos criadores.
+        </p>
+
+        <div class="footer-copyright">
+            © 2026 FastSave - Todos os direitos reservados.
+        </div>
+    </footer>
+
+    <script>
+        // 1. Lógica do Menu (Abrir/Fechar)
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.querySelector('.overlay').classList.toggle('active');
+        }
+
+        // 2. Lógica do Botão Colar
+        async function pasteLink() {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('urlInput').value = text;
+            } catch (err) {
+                alert('Tente Ctrl+V.');
+            }
+        }
+
+        // 3. Lógica do FAQ (Acordeão) - Faz as perguntas abrirem e fecharem
+        const faqQuestions = document.querySelectorAll(".faq-question");
+        faqQuestions.forEach(question => {
+            question.addEventListener("click", () => {
+                question.classList.toggle("active");
+                const answer = question.nextElementSibling;
+                if (answer.style.maxHeight) {
+                    answer.style.maxHeight = null;
+                } else {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                }
+            });
+        });
+
+        // 4. A Grande Mágica: Atualiza TUDO quando troca a plataforma
+        function changePlatform(platform) {
+            // --- A. Atualiza o Topo (Hero) ---
+            const title = document.getElementById('hero-title');
+            const input = document.getElementById('urlInput');
+            const aboutTitle = document.getElementById('about-title');
+            
+            title.innerText = `Baixar vídeo do ${platform}`;
+            input.placeholder = `Cole o link do ${platform} aqui...`;
+            if(aboutTitle) aboutTitle.innerText = `Por que baixar vídeos do ${platform} com o FastSave?`;
+
+            // --- B. Atualiza a Seção de "Como Baixar" ---
+            const howToTitle = document.getElementById('howto-title');
+            const howToStep1 = document.getElementById('howto-step1');
+            
+            if(howToTitle) howToTitle.innerText = `Como baixar vídeo do ${platform} sem marca d'água?`;
+            if(howToStep1) howToStep1.innerText = `Abra o aplicativo ${platform}, escolha o vídeo e clique em "Compartilhar" > "Copiar Link".`;
+
+            // --- C. Atualiza os 3 Cards de Benefícios Principais ---
+            const featureText = document.getElementById('feature-text');
+            if(featureText) featureText.innerText = `Obtenha o vídeo limpo, sem o logotipo do ${platform} ou nome do usuário.`;
+
+            // --- D. Atualiza os 6 Ícones Extras (Grade) ---
+            // Pegamos todos os textos dos ícones e atualizamos um por um
+            const extraTexts = document.querySelectorAll('.extra-item p');
+            if(extraTexts.length >= 6) {
+                extraTexts[0].innerText = `Baixar vídeo do ${platform} para editar e publicar seus vídeos.`;
+                extraTexts[1].innerText = `É grátis. Você pode salvar quantos vídeos do ${platform} quiser.`;
+                // O índice 2 é genérico ("Seu registro não é necessário"), não precisa mudar.
+                extraTexts[3].innerText = `Salvar vídeos do ${platform} pelo link em alta velocidade.`;
+                extraTexts[4].innerText = `${platform} download MP4 e arquivos MP3 de alta qualidade.`;
+                // O índice 5 é genérico ("Funciona para todos..."), não precisa mudar.
+            }
+
+            // --- E. Atualiza o FAQ (Perguntas e Respostas) ---
+            const faqQ = document.querySelectorAll('.faq-question');
+            const faqA = document.querySelectorAll('.faq-answer p');
+
+            // Verifica se o FAQ existe antes de tentar mudar
+            if(faqQ.length > 0) {
+                // Pergunta 1: Pagar?
+                faqQ[0].innerText = `Preciso pagar para baixar vídeos do ${platform}?`;
+                
+                // Pergunta 2: Extensões?
+                faqQ[1].innerText = `Preciso instalar extensões para baixar vídeo do ${platform}?`;
+                faqA[1].innerText = `Não. Para baixar vídeos do ${platform} e remover marca d'água, você só precisa do link. Cole-o no nosso site e pronto.`;
+
+                // Pergunta 3: Onde salva?
+                faqQ[2].innerText = `Onde os vídeos do ${platform} são salvos?`;
+
+                // Pergunta 4: HD?
+                faqQ[3].innerText = `Posso baixar vídeos do ${platform} em HD?`;
+                faqA[3].innerText = `Sim! O FastSave busca sempre a maior qualidade disponível no servidor original do ${platform} para te entregar o arquivo em alta definição.`;
+
+                // Pergunta 5: iPhone?
+                faqQ[4].innerText = `Como baixar vídeos do ${platform} no iPhone (iOS)?`;
+
+                // Pergunta 6: Converter MP4?
+                if(faqQ[5]) {
+                    faqQ[5].innerText = `Como converter vídeos do ${platform} para MP4 online?`;
+                    faqA[5].innerText = `É automático. Ao colar o link do ${platform} no FastSave e clicar em baixar, nosso sistema processa o vídeo e disponibiliza o arquivo final.`;
+                }
+
+                // Pergunta 7: Conta?
+                if(faqQ[6]) {
+                    faqQ[6].innerText = `Preciso de uma conta no ${platform} para baixar vídeos?`;
+                    faqA[6].innerText = `Não, você não precisa de uma conta no ${platform}. Basta colar o link do vídeo para baixar sem marca d'água.`;
+                }
+
+                // Pergunta 8: Privado?
+                if(faqQ[7]) {
+                    faqQ[7].innerText = `Posso baixar vídeos de contas privadas do ${platform}?`;
+                    faqA[7].innerText = `Não. O FastSave respeita a privacidade. Só é possível baixar vídeos de contas públicas do ${platform}.`;
+                }
+            }
+
+            // Fecha o menu lateral
+            toggleMenu();
+        }
+    </script>
+
+</body>
+</html>
