@@ -455,6 +455,539 @@
             padding-top: 20px;
         }
 
+/* --- ESTILO DOS BOTÕES DE QUALIDADE --- */
+        .quality-label {
+            color: white;
+            margin: 15px 0 10px 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .quality-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 botões por linha no celular */
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .quality-card {
+            cursor: pointer;
+            position: relative;
+        }
+        .quality-card input {
+            display: none; /* Esconde a bolinha feia do rádio */
+        }
+        .card-content {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            color: white;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .card-content i { font-size: 1.3rem; margin-bottom: 5px; }
+        .card-content span { font-weight: 700; font-size: 0.9rem; }
+        .card-content small { font-size: 0.75rem; opacity: 0.8; }
+
+        /* Cores quando selecionado */
+        .quality-card:hover .card-content { background: rgba(255,255,255,0.25); }
+        
+        .quality-card input[value="best"]:checked + .card-content { 
+            background: white; color: #7B2CBF; border-color: white; transform: scale(1.02); box-shadow: 0 0 15px rgba(123, 44, 191, 0.5); 
+        }
+        .quality-card input[value="720"]:checked + .card-content { 
+            background: white; color: #00bbf9; border-color: white; 
+        }
+        .quality-card input[value="480"]:checked + .card-content { 
+            background: white; color: #00f5d4; border-color: white; 
+        }
+        .quality-card input[value="360"]:checked + .card-content { 
+            background: white; color: #fee440; border-color: white; 
+        }
+        .quality-card input[value="mp3"]:checked + .card-content { 
+            background: white; color: #ff0054; border-color: white; 
+        }
+
+        /* Botão de áudio ocupa linha inteira */
+        .quality-card.full-width { grid-column: 1 / -1; }
+        
+        /* Ajuste para PC (4 colunas) */
+        @media (min-width: 768px) {
+            .quality-options { grid-template-columns: repeat(4, 1fr); }
+            .quality-card.full-width { grid-column: span 4; width: 50%; margin: 0 auto; }
+        }
+
+/* --- POPUP DE DOWNLOAD --- */
+        .modal-overlay {
+            display: none; /* Escondido por padrão */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+       /* ATUALIZE A CAIXA DO POPUP */
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            /* MUDANÇA: Padding bottom é 0 para o rodapé colar na borda */
+            padding: 30px 20px 0 20px; 
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            animation: slideUp 0.3s ease;
+            overflow: hidden; /* Importante: corta o rodapé nas bordas arredondadas */
+            
+            /* --- FLEXBOX --- */
+            display: flex;
+            flex-direction: column; 
+            align-items: center;    
+            justify-content: flex-start; 
+            
+            min-height: 550px; 
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        /* Barra de Progresso */
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #7B2CBF, #4CC9F0);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .status-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        /* Espaço para Anúncio no Popup */
+        .ad-popup-space {
+            width: 100%;
+            height: 250px; 
+            background-color: #f8f9fa;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #999;
+            font-size: 0.8rem;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+       /* Ajuste do Ícone de Sucesso */
+        .success-icon {
+            color: #2ecc71;
+            font-size: 4rem;
+            display: none;
+            
+            /* --- MUDANÇA AQUI --- */
+            /* Essa margem empurra o ícone para baixo, saindo de trás do botão */
+            margin: 60px auto 15px auto; 
+            
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- NOVA ÁREA DE RODAPÉ (Caixinha cinza) --- */
+        .modal-footer {
+            margin-top: auto; /* Empurra tudo para o fundo */
+            width: calc(100% + 40px); /* Truque para compensar o padding lateral do pai */
+            background-color: #f8f9fa; /* Cor cinza claro */
+            border-top: 1px solid #eee;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* BOTÃO DENTRO DO RODAPÉ */
+        .close-btn {
+            background: linear-gradient(90deg, #7B2CBF, #4CC9F0);
+            color: white;
+            border: none;
+            padding: 15px 0;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            display: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
+            transition: transform 0.2s;
+        }
+        
+        .close-btn:hover {
+            transform: scale(1.02);
+        }
+
+/* --- SEÇÃO DE CONTATO --- */
+        .contact-section {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .contact-section h2 {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .contact-subtitle {
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .contact-form {
+            background: #f8f9fa; /* Fundo cinza bem claro */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            text-align: left; /* Alinha os labels à esquerda */
+            border: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #4CC9F0;
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.1);
+        }
+
+        .send-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block;
+            margin-left: auto; /* Joga o botão para a direita */
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(123, 44, 191, 0.3);
+        }
+
+        .contact-note {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #888;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Responsividade para celular */
+        @media (max-width: 768px) {
+            .contact-form {
+                padding: 25px;
+            }
+            .send-btn {
+                width: 100%; /* Botão largura total no celular */
+                margin-left: 0;
+            }
+        }
+
+/* --- ESTILO DAS CONFIGURAÇÕES --- */
+        .close-btn-corner {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .settings-list {
+            width: 100%;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setting-name {
+            display: block;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .setting-desc {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Botão Vermelho de Limpar */
+        .clear-data-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background: #ffebee;
+            color: #ff4757;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .clear-data-btn:hover {
+            background: #ffcdd2;
+        }
+
+        /* --- BOTÃO SWITCH (TOGGLE) --- */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #7B2CBF; /* Cor do seu tema */
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* --- CLASSE DO MODO ESCURO (CSS DO TEMA) --- */
+        body.dark-mode {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+        body.dark-mode .modal-box, 
+        body.dark-mode .sidebar,
+        body.dark-mode header,
+        body.dark-mode .downloader-box,
+        body.dark-mode .faq-item,
+        body.dark-mode .faq-question {
+            background-color: #2d2d2d;
+            color: #fff;
+            border-color: #444;
+        }
+        body.dark-mode .modal-title,
+        body.dark-mode .setting-name,
+        body.dark-mode .sidebar a {
+            color: #fff;
+        }
+
+/* --- ESTILO DA LISTA DE HISTÓRICO --- */
+        .history-item {
+            display: flex;
+            justify-content: space-between; /* Texto na ponta, botão na outra */
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-link-text {
+            flex: 1; /* Ocupa todo o espaço sobrando */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* Faz aparecer os "..." */
+            color: #555;
+            font-size: 0.85rem;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .history-link-text:hover {
+            color: #4CC9F0;
+        }
+
+        .copy-mini-btn {
+            background: #eee;
+            color: #333;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 60px;
+        }
+
+        .copy-mini-btn:hover {
+            background: #7B2CBF;
+            color: white;
+        }
+
+/* --- ESTILOS DOS ANÚNCIOS (BANNERS) --- */
+        
+        /* Container Geral (Centraliza tudo) */
+        .ad-container-top, 
+        .ad-container-modal {
+            margin: 15px auto;
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Texto "Publicidade" pequeno e discreto */
+        .ad-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* CAIXA 1: Banner Largo (Topo) */
+        .ad-box-banner {
+            width: 728px;
+            height: 90px;
+            background-color: #f1f1f1;
+            border: 1px dashed #ccc;
+            color: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            
+            /* Para celular não quebrar: */
+            max-width: 95%; 
+        }
+
+        /* CAIXA 2: Retângulo (Popup) */
+        .ad-box-square {
+            width: 300px;
+            height: 250px;
+            background-color: #f1f1f1;
+            border: 1px dashed #ccc;
+            color: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto;
+        }
+
+        /* --- SUPORTE AO MODO ESCURO --- */
+        body.dark-mode .ad-box-banner,
+        body.dark-mode .ad-box-square {
+            background-color: #2d2d2d; /* Fundo escuro */
+            border-color: #444;
+            color: #666;
+        }
+        
+        body.dark-mode .ad-label {
+            color: #555;
+        }
+
+        /* --- AJUSTE PARA CELULAR (RESPONSIVO) --- */
+        @media (max-width: 768px) {
+            .ad-box-banner {
+                /* No celular, o banner 728x90 é grande demais. 
+                   Geralmente as redes de anúncio trocam automático para 320x50.
+                   Aqui só ajustamos a caixa visualmente: */
+                width: 320px; 
+                height: 50px;
+                font-size: 0.7rem;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -465,7 +998,7 @@
         <a href="#" onclick="changePlatform('TikTok')"><i class="fab fa-tiktok"></i> Baixar TikTok</a>
         <a href="#" onclick="changePlatform('Instagram')"><i class="fab fa-instagram"></i> Baixar Instagram</a>
         <a href="#" onclick="changePlatform('YouTube')"><i class="fab fa-youtube"></i> Baixar YouTube</a>
-        <a href="#"><i class="fas fa-cog"></i> Configurações</a>
+        <a href="#" onclick="openSettings()"><i class="fas fa-cog"></i> Configurações</a>
     </div>
 
     <header>
@@ -476,6 +1009,12 @@
     </header>
 
     <section class="hero">
+        <div class="ad-container-top">
+        <span class="ad-label">Publicidade</span>
+        <div class="ad-box-banner">
+            Anúncio 728 x 90
+        </div>
+    </div>
         <h1 id="hero-title">Baixar vídeo do TikTok</h1>
         <p style="margin-bottom: 20px; opacity: 0.9;">Cole o link abaixo para baixar em HD sem marca d'água</p>
         
@@ -492,15 +1031,54 @@
                 </button>
             </div>
 
-            <div class="format-selector">
-                <label class="radio-label">
-                    <input type="radio" name="format" value="mp4" checked>
-                    <span>Vídeo (Sem marca d'água)</span>
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="format" value="mp3">
-                    <span>Áudio (MP3)</span>
-                </label>
+           <div class="quality-grid">
+                <p class="quality-label">Escolha a qualidade:</p>
+                <div class="quality-options">
+                    
+                    <label class="quality-card">
+                        <input type="radio" name="format" value="best" checked>
+                        <div class="card-content">
+                            <i class="fas fa-crown"></i>
+                            <span>Máxima</span>
+                            <small>HD / 4K</small>
+                        </div>
+                    </label>
+
+                    <label class="quality-card">
+                        <input type="radio" name="format" value="720">
+                        <div class="card-content">
+                            <i class="fas fa-video"></i>
+                            <span>HD</span>
+                            <small>720p</small>
+                        </div>
+                    </label>
+
+                    <label class="quality-card">
+                        <input type="radio" name="format" value="480">
+                        <div class="card-content">
+                            <i class="fas fa-film"></i>
+                            <span>Média</span>
+                            <small>480p</small>
+                        </div>
+                    </label>
+
+                    <label class="quality-card">
+                        <input type="radio" name="format" value="360">
+                        <div class="card-content">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                            <span>Leve</span>
+                            <small>360p</small>
+                        </div>
+                    </label>
+
+                    <label class="quality-card full-width">
+                        <input type="radio" name="format" value="mp3">
+                        <div class="card-content">
+                            <i class="fas fa-music"></i>
+                            <span>Áudio (MP3)</span>
+                        </div>
+                    </label>
+                </div>
             </div>
         </form>
     </section>
@@ -646,6 +1224,33 @@
         </div>
     </section>
 
+<section class="contact-section" id="contact">
+        <h2>Entre em Contato</h2>
+        <p class="contact-subtitle">Dúvidas, sugestões ou relatar um erro? Envie uma mensagem.</p>
+        
+       <form class="contact-form" action="https://formsubmit.co/ajax/e59e3d9e3eb08b3507d53be9e4d6b7b3" method="POST">
+            
+            <input type="hidden" name="_template" value="table"> <input type="hidden" name="_subject" value="Nova mensagem do FastSave!"> <input type="hidden" name="_captcha" value="false"> <div class="form-group">
+                <label for="email">Seu e-mail de contato</label>
+                <input type="email" id="email" name="email" placeholder="nome@exemplo.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Mensagem ou relato de erro</label>
+                <textarea id="message" name="message" rows="5" placeholder="Descreva sua dúvida..." required></textarea>
+            </div>
+
+            <button type="submit" class="send-btn">
+                Enviar Mensagem <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+
+        <p class="contact-note">
+            Estamos aqui para responder a quaisquer perguntas ou dúvidas que você possa ter. 
+            Entre em contato conosco e responderemos o mais breve possível.
+        </p>
+    </section>
+
 <footer>
         <div class="footer-logo">FastSave</div>
         
@@ -653,9 +1258,10 @@
             <a href="#" onclick="changePlatform('TikTok')">Baixar TikTok</a>
             <a href="#" onclick="changePlatform('Instagram')">Baixar Instagram</a>
             <a href="#" onclick="changePlatform('YouTube')">Baixar YouTube</a>
-            <a href="#">Termos de Uso</a>
-            <a href="#">Política de Privacidade</a>
-            <a href="#">Contato</a>
+            
+            <a href="/termos">Termos de Uso</a>
+            <a href="/politica">Política de Privacidade</a>
+            <a href="#contact">Contato</a>
         </div>
 
         <p class="footer-disclaimer">
@@ -669,6 +1275,75 @@
         </div>
     </footer>
 
+<div class="modal-overlay" id="downloadModal">
+    <div class="modal-box">
+        <i class="fas fa-check-circle success-icon" id="successIcon"></i>
+        <h3 class="modal-title" id="modalTitle">Processando seu vídeo...</h3>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <p class="status-text" id="statusText">0%</p>
+
+        <div class="ad-container-modal">
+                <span class="ad-label">Publicidade</span>
+                <div class="ad-box-square">
+                    Anúncio 300 x 250
+                </div>
+            </div>
+
+        <div class="modal-footer">
+            <button class="close-btn" id="closeBtn" onclick="closeModal()">Baixar Outro Vídeo</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) closeSettings()">
+        <div class="modal-box" style="min-height: auto; padding-bottom: 30px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-cog"></i> Configurações</h3>
+                <button class="close-btn-corner" onclick="closeSettings()">&times;</button>
+            </div>
+
+            <div class="settings-list">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name">Modo Escuro</span>
+                        <span class="setting-desc">Alternar para tema noturno</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <span class="setting-name">Salvar Histórico</span>
+                        <span class="setting-desc">Lembrar últimos 5 links</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="historyToggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="historySection" style="margin-top: 20px; text-align: left; display: none;">
+                <h4 style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Recentes:</h4>
+                <div id="historyList" style="max-height: 150px; overflow-y: auto; font-size: 0.85rem;">
+                    </div>
+            </div>
+
+            <div class="setting-action">
+                <button class="clear-data-btn" onclick="clearAppData()">
+                    <i class="fas fa-trash-alt"></i> Limpar Dados
+                </button>
+            </div>
+            
+            <p style="font-size: 0.8rem; color: #ccc; margin-top: 20px;">Versão 1.1.0 • FastSave</p>
+        </div>
+    </div>
     <script>
         // 1. Lógica do Menu (Abrir/Fechar)
         function toggleMenu() {
@@ -778,6 +1453,293 @@
 
             // Fecha o menu lateral
             toggleMenu();
+        }
+
+        // --- CÓDIGO DO POPUP DE DOWNLOAD (PASSO 3) ---
+
+    const form = document.getElementById('downloadForm');
+    const modal = document.getElementById('downloadModal');
+    const progressBar = document.getElementById('progressBar');
+    const statusText = document.getElementById('statusText');
+    const modalTitle = document.getElementById('modalTitle');
+    const successIcon = document.getElementById('successIcon');
+    const closeBtn = document.getElementById('closeBtn');
+    const progressContainer = document.getElementById('progressContainer');
+
+    // 1. Intercepta o clique no botão "Baixar"
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Impede o site de recarregar
+            
+            // --- INÍCIO DO CÓDIGO DE SALVAR ---
+                const urlInput = document.getElementById('urlInput').value;
+                const historyToggle = document.getElementById('historyToggle');
+                
+                // Só salva se o botão estiver ligado e tiver texto
+                if (historyToggle && historyToggle.checked && urlInput.trim() !== "") {
+                    let history = JSON.parse(localStorage.getItem('downloadHistory') || '[]');
+                    
+                    // Evita salvar o mesmo link duas vezes seguidas
+                    if(history[0] !== urlInput) {
+                        history.unshift(urlInput); // Adiciona no topo da lista
+                        if(history.length > 5) history.pop(); // Mantém só os 5 últimos
+                        localStorage.setItem('downloadHistory', JSON.stringify(history));
+                    }
+                }
+            
+        
+            // Abre o popup
+            modal.style.display = 'flex';
+            resetModal();
+
+            // 2. Simula a barra enchendo (Mágica visual)
+            let width = 0;
+            const interval = setInterval(() => {
+                // Só enche até 90% enquanto o servidor pensa
+                if (width >= 90) {
+                    clearInterval(interval);
+                } else {
+                    width += Math.random() * 5; // Sobe aleatoriamente
+                    if(width > 90) width = 90;
+                    updateProgress(width);
+                }
+            }, 300);
+
+            // 3. Envia o pedido para o Python (Servidor)
+            const formData = new FormData(form);
+            
+            fetch('/download', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob(); // Recebe o arquivo
+                } else {
+                    throw new Error('Erro no download');
+                }
+            })
+            .then(blob => {
+                // 4. Sucesso! Completa a barra para 100%
+                clearInterval(interval);
+                updateProgress(100);
+                showSuccess();
+
+                // Faz o navegador baixar o arquivo recebido
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = "video_fastsave.mp4"; // Nome do arquivo salvo
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                // Se der erro
+                clearInterval(interval);
+                modalTitle.innerText = "Erro ao baixar";
+                modalTitle.style.color = "#ff4757";
+                statusText.innerText = "Verifique o link e tente novamente.";
+                progressBar.style.background = "#ff4757";
+                closeBtn.style.display = 'block';
+                closeBtn.innerText = "Tentar Novamente";
+            });
+        });
+    }
+
+    // Funções auxiliares para mudar o visual
+    function updateProgress(val) {
+        const rounded = Math.round(val);
+        progressBar.style.width = rounded + '%';
+        statusText.innerText = rounded + '% Carregando...';
+    }
+
+    function showSuccess() {
+        modalTitle.innerText = "Download Concluído!";
+        statusText.innerText = "Seu arquivo foi salvo.";
+        successIcon.style.display = 'block';
+        closeBtn.style.display = 'block';
+        closeBtn.innerText = "Baixar Outro Vídeo";
+        progressContainer.style.display = 'none'; // Esconde a barra no final
+    }
+
+    function resetModal() {
+        progressBar.style.width = '0%';
+        progressBar.style.background = 'linear-gradient(90deg, #7B2CBF, #4CC9F0)';
+        statusText.innerText = '0%';
+        modalTitle.innerText = 'Processando...';
+        modalTitle.style.color = '#333';
+        successIcon.style.display = 'none';
+        closeBtn.style.display = 'none';
+        progressContainer.style.display = 'block';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    // --- LÓGICA DO FORMULÁRIO (ENVIO REAL COM FORMSUBMIT) ---
+    const contactForm = document.querySelector('.contact-form');
+    const sendBtn = document.querySelector('.send-btn');
+
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Impede a página de recarregar
+
+            const originalText = sendBtn.innerHTML;
+            
+            // 1. Muda botão para "Enviando..."
+            sendBtn.innerHTML = 'Enviando... <i class="fas fa-spinner fa-spin"></i>';
+            sendBtn.style.opacity = '0.7';
+            sendBtn.disabled = true;
+
+            // 2. Coleta os dados e envia para o FormSubmit
+            const formData = new FormData(contactForm);
+
+            fetch(contactForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 
+                    'Accept': 'application/json' 
+                }
+            })
+            .then(response => {
+                // 3. Se deu certo (Sucesso)
+                sendBtn.innerHTML = 'Enviado com Sucesso! <i class="fas fa-check"></i>';
+                sendBtn.style.background = '#2ecc71'; // Verde
+                contactForm.reset(); // Limpa os campos
+
+                // Volta ao normal depois de 3 segundos
+                setTimeout(() => {
+                    sendBtn.innerHTML = originalText;
+                    sendBtn.style.background = 'var(--primary-gradient)';
+                    sendBtn.style.opacity = '1';
+                    sendBtn.disabled = false;
+                }, 3000);
+            })
+            .catch(error => {
+                // 4. Se der erro
+                sendBtn.innerHTML = 'Erro ao enviar. Tente novamente.';
+                sendBtn.style.background = '#ff4757'; // Vermelho
+                console.error('Erro:', error);
+                
+                setTimeout(() => {
+                    sendBtn.innerHTML = originalText;
+                    sendBtn.style.background = 'var(--primary-gradient)';
+                    sendBtn.style.opacity = '1';
+                    sendBtn.disabled = false;
+                }, 3000);
+            });
+        });
+    }
+
+   // --- LÓGICA DAS CONFIGURAÇÕES (ATUALIZADA) ---
+
+        // 1. Abrir Configurações e Carregar Histórico com Botão Copiar
+        function openSettings() {
+            const modal = document.getElementById('settingsModal');
+            const historySection = document.getElementById('historySection');
+            const historyList = document.getElementById('historyList');
+
+            if(modal) modal.style.display = 'flex';
+            toggleMenu(); // Fecha o menu lateral
+
+            // Carrega o histórico salvo
+            const history = JSON.parse(localStorage.getItem('downloadHistory') || '[]');
+
+            if (history.length > 0 && historySection && historyList) {
+                historySection.style.display = 'block'; // Mostra a área
+                historyList.innerHTML = ''; // Limpa a lista antiga
+                
+                // Cria cada item da lista
+                history.forEach(link => {
+                    // Cria o container da linha (usando a classe CSS nova)
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    
+                    // A. O Texto do Link (Cortado)
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'history-link-text';
+                    textSpan.innerHTML = `<i class="fas fa-link" style="margin-right:5px;"></i> ${link}`;
+                    
+                    // Clicar no texto preenche o input principal
+                    textSpan.onclick = function() {
+                        const urlInput = document.getElementById('urlInput');
+                        if(urlInput) urlInput.value = link;
+                        closeSettings();
+                    };
+
+                    // B. O Botão Copiar
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-mini-btn';
+                    copyBtn.innerText = 'Copiar';
+                    
+                    // Clicar no botão copia para a área de transferência
+                    copyBtn.onclick = function(e) {
+                        e.stopPropagation(); // Não deixa clicar no link ao mesmo tempo
+                        
+                        navigator.clipboard.writeText(link).then(() => {
+                            // Feedback visual (Muda texto para "Copiado!")
+                            const originalText = copyBtn.innerText;
+                            copyBtn.innerText = 'Copiado!';
+                            copyBtn.style.background = '#2ecc71'; // Verde
+                            copyBtn.style.color = 'white';
+
+                            // Volta ao normal depois de 2 segundos
+                            setTimeout(() => {
+                                copyBtn.innerText = originalText;
+                                copyBtn.style.background = '#eee';
+                                copyBtn.style.color = '#333';
+                            }, 2000);
+                        });
+                    };
+
+                    // Junta tudo na linha
+                    item.appendChild(textSpan);
+                    item.appendChild(copyBtn);
+                    historyList.appendChild(item);
+                });
+            } else if (historySection) {
+                historySection.style.display = 'none'; // Esconde se estiver vazio
+            }
+        }
+
+        function closeSettings() {
+            const modal = document.getElementById('settingsModal');
+            if(modal) modal.style.display = 'none';
+        }
+
+        // 2. Lógica do Dark Mode
+        function toggleDarkMode() {
+            const body = document.body;
+            const toggle = document.getElementById('darkModeToggle');
+            
+            if(toggle && toggle.checked) {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // 3. Carregar preferências ao abrir o site
+        window.addEventListener('load', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if(savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                const toggle = document.getElementById('darkModeToggle');
+                if(toggle) toggle.checked = true;
+            }
+        });
+
+        // 4. Limpar Dados
+        function clearAppData() {
+            if(confirm("Tem certeza? Isso apagará seu histórico e preferências.")) {
+                localStorage.clear();
+                location.reload(); // Recarrega a página para aplicar
+            }
         }
     </script>
 
