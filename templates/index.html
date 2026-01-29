@@ -991,6 +991,48 @@
             }
         }
 
+        /* --- ESTILO DA TROCA RÁPIDA --- */
+.platform-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap; /* Para não quebrar no celular */
+}
+
+.plat-btn {
+    background: rgba(255, 255, 255, 0.2); /* Fundo transparente */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.plat-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Estado Ativo (O botão da plataforma que está sendo usada) */
+.plat-btn.active {
+    background: white;
+    color: #7B2CBF; /* Roxo do tema */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border-color: white;
+}
+
+/* Ícones levemente maiores */
+.plat-btn i {
+    font-size: 1.1rem;
+}
     </style>
 </head>
 <body>
@@ -1032,6 +1074,20 @@
 </div>
     </div>
         <h1 id="hero-title">Baixar vídeo do TikTok</h1>
+
+<div class="platform-switcher">
+    <button onclick="changePlatform('TikTok')" class="plat-btn active" id="btn-TikTok">
+        <i class="fab fa-tiktok"></i> TikTok
+    </button>
+    <button onclick="changePlatform('Instagram')" class="plat-btn" id="btn-Instagram">
+        <i class="fab fa-instagram"></i> Instagram
+    </button>
+    <button onclick="changePlatform('YouTube')" class="plat-btn" id="btn-YouTube">
+        <i class="fab fa-youtube"></i> YouTube
+    </button>
+</div>
+
+
         <p style="margin-bottom: 20px; opacity: 0.9;">Cole o link abaixo para baixar em HD sem marca d'água</p>
         
         <form action="/download" method="POST" id="downloadForm">
@@ -1402,6 +1458,20 @@
 
         // 4. A Grande Mágica: Atualiza TUDO quando troca a plataforma
         function changePlatform(platform) {
+
+// --- PARTE NOVA: Atualiza os botões de troca rápida ---
+    // 1. Remove a classe 'active' de todos os botões
+    document.querySelectorAll('.plat-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // 2. Adiciona 'active' só no botão clicado (se ele existir na tela)
+    const activeBtn = document.getElementById('btn-' + platform);
+    if(activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    // -------------------------------------------------------
+
             // --- A. Atualiza o Topo (Hero) ---
             const title = document.getElementById('hero-title');
             const input = document.getElementById('urlInput');
@@ -1477,8 +1547,13 @@
             }
 
             // Fecha o menu lateral
-            toggleMenu();
-        }
+          const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.overlay');
+    
+    // Força o fechamento (remove a classe 'active')
+    if (sidebar) sidebar.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+}
 
         // --- CÓDIGO DO POPUP DE DOWNLOAD (PASSO 3) ---
 
@@ -1544,18 +1619,35 @@
                     throw new Error('Erro no download');
                 }
             })
-            .then(blob => {
+           .then(blob => {
                 // 4. Sucesso! Completa a barra para 100%
                 clearInterval(interval);
                 updateProgress(100);
                 showSuccess();
+
+                // --- CÓDIGO NOVO (LÓGICA DO NOME) ---
+                
+                // 1. Descobre qual formato foi escolhido no menu
+                const formatoInput = document.querySelector('input[name="format"]:checked');
+                const formato = formatoInput ? formatoInput.value : 'best';
+
+                // 2. Define o nome padrão como Vídeo MP4
+                let nomeFinal = "video_fastsave.mp4";
+
+                // 3. Se a pessoa escolheu MP3, muda a extensão
+                if (formato === 'mp3') {
+                    nomeFinal = "audio_fastsave.mp3";
+                }
 
                 // Faz o navegador baixar o arquivo recebido
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                a.download = "video_fastsave.mp4"; // Nome do arquivo salvo
+                
+                // Usa a variável 'nomeFinal' em vez do texto fixo
+                a.download = nomeFinal; 
+                
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
@@ -1602,6 +1694,7 @@
 
     function closeModal() {
         modal.style.display = 'none';
+        document.getElementById('urlInput').value = '';
     }
 
     // --- LÓGICA DO FORMULÁRIO (ENVIO REAL COM FORMSUBMIT) ---

@@ -3,6 +3,8 @@ import requests
 import yt_dlp
 import os
 import time
+import subprocess
+import shutil
 
 app = Flask(__name__)
 
@@ -25,73 +27,121 @@ def privacy():
 @app.route('/download', methods=['POST'])
 def download_video():
     url = request.form.get('url')
-    # O formato agora pode receber: 'best', '720', '480', '360' ou 'mp3'
     qualidade_escolhida = request.form.get('format') 
 
-    # --- ESTRATÉGIA 1: TIKTOK (Usa API Externa - Mais Rápido) ---
+    # ==============================================================================
+    # ESTRATÉGIA 1: TIKTOK (TikWM + Conversão Segura)
+    # ==============================================================================
     if "tiktok.com" in url:
         try:
+            # 1. Pega o link da API (TikWM para evitar bloqueios)
+            headers_tiktok = {'User-Agent': 'Mozilla/5.0'}
             api_url = "https://www.tikwm.com/api/"
             payload = {'url': url, 'count': 12, 'cursor': 0, 'web': 1, 'hd': 1}
-            response = requests.post(api_url, data=payload)
+            
+            response = requests.post(api_url, data=payload, headers=headers_tiktok)
             data = response.json()
 
             if 'data' not in data:
-                return f"Erro: Vídeo não encontrado ou privado. Detalhes: {data}", 400
+                return f"Erro: Vídeo não encontrado. Detalhes: {data}", 400
             
-            # Lógica de Escolha para TikTok
+            # 2. Define o link correto baseado na escolha
             if qualidade_escolhida == 'mp3':
                 link_final = data['data']['music']
-                extensao = 'mp3'
+                extensao_final = 'mp3'
             elif qualidade_escolhida in ['360', '480']:
-                # Se o usuário quer economia (360 ou 480), pegamos a versão normal 'play'
                 link_final = data['data']['play']
-                extensao = 'mp4'
+                extensao_final = 'mp4'
             else:
-                # Se quer 720 ou Máxima, tentamos a versão HD ('hdplay')
-                # Se não tiver HD, o .get pega a versão normal como garantia
                 link_final = data['data'].get('hdplay', data['data']['play'])
-                extensao = 'mp4'
+                extensao_final = 'mp4'
             
-            # Correção de link cortado
             if not link_final.startswith('http'):
                 link_final = f"https://www.tikwm.com{link_final}"
 
-            # Baixa o arquivo manualmente
-            arquivo = requests.get(link_final)
-            filename = f"{DOWNLOAD_FOLDER}/tiktok_{int(time.time())}.{extensao}"
+            # 3. Baixa o arquivo Bruto para um nome temporário
+            arquivo_remoto = requests.get(link_final, headers=headers_tiktok)
             
-            with open(filename, 'wb') as f:
-                f.write(arquivo.content)
+            # Nome temporário (bruto) e nome final (que o usuário vai receber)
+            nome_temp = f"{DOWNLOAD_FOLDER}/temp_{int(time.time())}"
+            nome_final = f"{DOWNLOAD_FOLDER}/tiktok_{int(time.time())}.{extensao_final}"
 
-            # Função de limpeza
+            with open(nome_temp, 'wb') as f:
+                f.write(arquivo_remoto.content)
+
+            # 4. TENTATIVA DE CONVERSÃO (MODO SEGURO)
+            # Se for MP3, tentamos converter usando o FFmpeg do servidor
+            if qualidade_escolhida == 'mp3':
+                try:
+                    # Tenta converter (Vai funcionar no Render)
+                    subprocess.run([
+                        'ffmpeg', '-y', '-i', nome_temp, 
+                        '-vn', '-ar', '44100', '-ac', '2', '-b:a', '192k', 
+                        nome_final
+                    ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    
+                    # Se deu certo, remove o temporário antigo
+                    if os.path.exists(nome_temp):
+                        os.remove(nome_temp)
+                        
+                except (FileNotFoundError, Exception):
+                    # SE FALHAR (No seu PC Windows sem FFmpeg), apenas renomeia o original
+                    # Assim o download não quebra com erro 400!
+                    print("AVISO: FFmpeg não encontrado ou erro. Enviando arquivo original renomeado.")
+                    if os.path.exists(nome_temp):
+                        if os.path.exists(nome_final):
+                            os.remove(nome_final)
+                        os.rename(nome_temp, nome_final)
+            else:
+                # Se for vídeo, não precisa converter, só renomeia
+                if os.path.exists(nome_temp):
+                    if os.path.exists(nome_final):
+                        os.remove(nome_final)
+                    os.rename(nome_temp, nome_final)
+
+            # 5. Limpeza com espera maior (Resolve o WinError 32)
             @after_this_request
             def remove_file(response):
                 try:
-                    time.sleep(2)
-                    if os.path.exists(filename):
-                        os.remove(filename)
+                    time.sleep(5) # Aumentei para 5s para o Windows liberar o arquivo
+                    if os.path.exists(nome_final):
+                        os.remove(nome_final)
                 except Exception as error:
-                    app.logger.error(f"Erro ao remover: {error}")
+                    # Apenas imprime o erro no console, não trava o site
+                    print(f"Erro ao limpar (ignorado): {error}")
                 return response
 
-            return send_file(filename, as_attachment=True)
+            return send_file(nome_final, as_attachment=True)
 
         except Exception as e:
-            return f"Erro na API do TikTok: {str(e)}", 400
+            return f"Erro no TikTok: {str(e)}", 400
 
-    # --- ESTRATÉGIA 2: YOUTUBE & INSTAGRAM (Usa yt-dlp - Com Seletor de Qualidade) ---
+    # ==============================================================================
+    # ESTRATÉGIA 2: YOUTUBE & INSTAGRAM (yt-dlp)
+    # ==============================================================================
     else:
         try:
-            # Configurações básicas do yt-dlp
             ydl_opts = {
                 'outtmpl': f'{DOWNLOAD_FOLDER}/%(title)s.%(ext)s',
                 'quiet': True,
                 'no_warnings': True,
                 'restrictfilenames': True,
+                'nocheckcertificate': True,
+                'geo_bypass': True,
+                # Estratégia Android para evitar bloqueio 403
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web'], 
+                        'player_skip': ['webpage', 'configs', 'js'], 
+                    }
+                },
+                'http_headers': {
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36',
+                    'Accept-Language': 'en-us,en;q=0.5',
+                }
             }
 
-            # --- LÓGICA DETALHADA DE QUALIDADE ---
+            # Configurações de Qualidade
             if qualidade_escolhida == 'mp3':
                 ydl_opts.update({
                     'format': 'bestaudio/best',
@@ -101,53 +151,47 @@ def download_video():
                         'preferredquality': '192',
                     }],
                 })
-            
             elif qualidade_escolhida == '720':
-                # Tenta baixar 720p ou inferior
-                ydl_opts.update({'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]/best'})
-                ydl_opts.update({'merge_output_format': 'mp4'})
-            
+                ydl_opts.update({'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]/best', 'merge_output_format': 'mp4'})
             elif qualidade_escolhida == '480':
-                # Tenta baixar 480p ou inferior
-                ydl_opts.update({'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]/best'})
-                ydl_opts.update({'merge_output_format': 'mp4'})
-
+                ydl_opts.update({'format': 'bestvideo[height<=480]+bestaudio/best[height<=480]/best', 'merge_output_format': 'mp4'})
             elif qualidade_escolhida == '360':
-                # Tenta baixar 360p ou inferior (Super Leve)
-                ydl_opts.update({'format': 'bestvideo[height<=360]+bestaudio/best[height<=360]/best'})
-                ydl_opts.update({'merge_output_format': 'mp4'})
-
+                ydl_opts.update({'format': 'bestvideo[height<=360]+bestaudio/best[height<=360]/best', 'merge_output_format': 'mp4'})
             else:
-                # 'best' -> Baixa a máxima qualidade disponível (pode ser 1080p, 4K, etc)
-                ydl_opts.update({'format': 'bestvideo+bestaudio/best'})
-                ydl_opts.update({'merge_output_format': 'mp4'})
+                ydl_opts.update({'format': 'bestvideo+bestaudio/best', 'merge_output_format': 'mp4'})
 
-            # Executa o download com yt-dlp
+            # Executa o download
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
                 filename = ydl.prepare_filename(info)
 
-                # Ajuste de nome para MP3 (o yt-dlp muda a extensão no final)
+                # Verifica se a conversão aconteceu (Modo Seguro também aqui)
                 if qualidade_escolhida == 'mp3':
-                    base, _ = os.path.splitext(filename)
-                    filename = base + ".mp3"
+                    nome_mp3 = os.path.splitext(filename)[0] + ".mp3"
+                    if os.path.exists(nome_mp3):
+                        filename = nome_mp3
+                    # Se não existir (erro no FFmpeg local), ele manda o original
+                else:
+                    if filename.endswith('.webm') or filename.endswith('.mkv'):
+                        nome_mp4 = os.path.splitext(filename)[0] + '.mp4'
+                        if os.path.exists(nome_mp4):
+                            filename = nome_mp4
 
                 @after_this_request
                 def remove_file(response):
                     try:
-                        time.sleep(2)
+                        time.sleep(5) # 5 segundos de segurança
                         if os.path.exists(filename):
                             os.remove(filename)
                     except Exception as error:
-                        app.logger.error(f"Erro ao remover: {error}")
+                        print(f"Erro ao limpar: {error}")
                     return response
 
                 return send_file(filename, as_attachment=True)
 
         except Exception as e:
-            return f"Erro ao baixar (YouTube/Insta): {str(e)}", 400
+            return f"Erro ao baixar: {str(e)}", 400
 
 if __name__ == '__main__':
-    # Define a porta correta para o Render ou usa 5000 localmente
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
