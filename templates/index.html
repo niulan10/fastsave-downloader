@@ -1033,6 +1033,87 @@
 .plat-btn i {
     font-size: 1.1rem;
 }
+
+/* --- ESTILO PARA MANUTENÇÃO (CSS NOVO) --- */
+/* Deixa o botão com cara de bloqueado */
+.quality-card.disabled-card {
+    cursor: not-allowed;           /* Mostra símbolo de proibido */
+    opacity: 0.7;                  /* Deixa meio transparente */
+    background: rgba(255, 255, 255, 0.15); /* Mantém o fundo de vidro */
+    border-color: #ff4757;         /* (Opcional) Borda vermelha leve */
+}
+
+/* Remove efeitos de brilho/clique quando estiver bloqueado */
+.quality-card.disabled-card:hover .card-content {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Garante que o input (bolinha) não funcione */
+.quality-card.disabled-card input {
+    pointer-events: none;
+}
+
+/* --- ESTILO DO ANÚNCIO DE 5 SEGUNDOS --- */
+.ad-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95); /* Fundo bem escuro */
+    z-index: 9999; /* Fica na frente de tudo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.ad-content-box {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 90%;
+    width: 350px;
+    position: relative;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.ad-timer {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.ad-placeholder {
+    width: 300px;
+    height: 250px; /* Tamanho padrão de anúncio retângulo */
+    background: #eee;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #ccc;
+    color: #888;
+}
+
+.ad-close-btn {
+    margin-top: 20px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    display: none; /* COMEÇA INVISÍVEL */
+    width: 100%;
+}
+
+.ad-close-btn:hover {
+    background: #ff6b81;
+}
     </style>
 </head>
 <body>
@@ -1143,13 +1224,13 @@
                         </div>
                     </label>
 
-                    <label class="quality-card full-width">
-                        <input type="radio" name="format" value="mp3">
-                        <div class="card-content">
-                            <i class="fas fa-music"></i>
-                            <span>Áudio (MP3)</span>
-                        </div>
-                    </label>
+                    <label class="quality-card full-width" id="mp3-card">
+    <input type="radio" name="format" value="mp3" id="mp3-input">
+    <div class="card-content">
+        <i class="fas fa-music" id="mp3-icon"></i>
+        <span id="mp3-text">Áudio (MP3)</span>
+    </div>
+</label>
                 </div>
             </div>
         </form>
@@ -1425,6 +1506,28 @@
             <p style="font-size: 0.8rem; color: #ccc; margin-top: 20px;">Versão 1.1.0 • FastSave</p>
         </div>
     </div>
+
+   <div id="ad-overlay" class="ad-overlay" style="display: none;">
+    <div class="ad-content-box">
+        <div class="ad-timer">O download começará em <span id="ad-countdown">5</span>s...</div>
+        
+        <div style="margin: 10px auto;">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : 'a3de27fc4d53cccfdd01dc1e62f37834', /* Sua Key do Banner 300x250 */
+                    'format' : 'iframe',
+                    'height' : 250,
+                    'width' : 300,
+                    'params' : {}
+                };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/a3de27fc4d53cccfdd01dc1e62f37834/invoke.js"></script>
+        </div>
+        <button id="ad-close-btn" class="ad-close-btn" onclick="closeAdAndDownload()">
+            <i class="fas fa-times"></i> Fechar e Baixar
+        </button>
+    </div>
+</div>
     <script>
         // 1. Lógica do Menu (Abrir/Fechar)
         function toggleMenu() {
@@ -1553,6 +1656,45 @@
     // Força o fechamento (remove a classe 'active')
     if (sidebar) sidebar.classList.remove('active');
     if (overlay) overlay.classList.remove('active');
+
+
+// --- COLE ISSO DENTRO DA FUNÇÃO changePlatform ---
+    
+    // Pega os elementos do botão MP3 pelos IDs que criamos
+    const mp3Card = document.getElementById('mp3-card');
+    const mp3Input = document.getElementById('mp3-input');
+    const mp3Icon = document.getElementById('mp3-icon');
+    const mp3Text = document.getElementById('mp3-text');
+
+    if (platform === 'TikTok') {
+        // TRAVA (Modo Manutenção)
+        if(mp3Input) {
+            mp3Input.disabled = true;                // Impede clique
+            if(mp3Input.checked) document.querySelector('input[value="best"]').click(); // Se tava marcado, muda pro "Máxima"
+        }
+        if(mp3Card) mp3Card.classList.add('disabled-card'); // Muda visual
+        if(mp3Icon) {
+            mp3Icon.className = 'fas fa-lock';       // Ícone cadeado
+            mp3Icon.style.color = '#ff4757';         // Vermelho
+        }
+        if(mp3Text) {
+            mp3Text.innerText = 'Áudio (Manutenção)';
+            mp3Text.style.color = 'rgba(255,255,255,0.7)';
+        }
+    } else {
+        // DESTRAVA (Modo Normal)
+        if(mp3Input) mp3Input.disabled = false;
+        if(mp3Card) mp3Card.classList.remove('disabled-card');
+        if(mp3Icon) {
+            mp3Icon.className = 'fas fa-music';      // Ícone música
+            mp3Icon.style.color = '';                // Cor original
+        }
+        if(mp3Text) {
+            mp3Text.innerText = 'Áudio (MP3)';
+            mp3Text.style.color = '';
+        }
+    }
+
 }
 
         // --- CÓDIGO DO POPUP DE DOWNLOAD (PASSO 3) ---
@@ -1566,102 +1708,158 @@
     const closeBtn = document.getElementById('closeBtn');
     const progressContainer = document.getElementById('progressContainer');
 
-    // 1. Intercepta o clique no botão "Baixar"
+     // --- VARIÁVEIS DO SISTEMA DE ANÚNCIO ---
+    let adInterval;
+    let downloadCredits = parseInt(localStorage.getItem('downloadCredits') || "0");
+    const adOverlay = document.getElementById('ad-overlay');
+    const adCountdown = document.getElementById('ad-countdown');
+    const adCloseBtn = document.getElementById('ad-close-btn');
+
+    // 1. Intercepta o clique no botão "Baixar" (Lógica Nova)
     if (form) {
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Impede o site de recarregar
+            e.preventDefault(); // Impede o envio imediato
+
+            // Verifica qual qualidade foi escolhida
+            const formatInput = document.querySelector('input[name="format"]:checked');
+            const quality = formatInput ? formatInput.value : 'best';
             
-            // --- INÍCIO DO CÓDIGO DE SALVAR ---
-                const urlInput = document.getElementById('urlInput').value;
-                const historyToggle = document.getElementById('historyToggle');
-                
-                // Só salva se o botão estiver ligado e tiver texto
-                if (historyToggle && historyToggle.checked && urlInput.trim() !== "") {
-                    let history = JSON.parse(localStorage.getItem('downloadHistory') || '[]');
-                    
-                    // Evita salvar o mesmo link duas vezes seguidas
-                    if(history[0] !== urlInput) {
-                        history.unshift(urlInput); // Adiciona no topo da lista
-                        if(history.length > 5) history.pop(); // Mantém só os 5 últimos
-                        localStorage.setItem('downloadHistory', JSON.stringify(history));
-                    }
+            // Define regra: Anúncio só em 'best' (Máxima) ou '720' (HD)
+            const isHighQuality = (quality === 'best' || quality === '720');
+
+            // SE for alta qualidade E não tiver créditos -> Mostra Anúncio
+            if (isHighQuality && downloadCredits <= 0) {
+                startAdProcess();
+            } else {
+                // SE tiver crédito ou for baixa qualidade -> Baixa direto
+                if (isHighQuality) {
+                    downloadCredits--; 
+                    localStorage.setItem('downloadCredits', downloadCredits);
                 }
-            
+                executeRealDownload(); // <--- AQUI CHAMA SEU CÓDIGO ANTIGO
+            }
+        });
+    }
+
+    // --- FUNÇÕES DO ANÚNCIO ---
+    
+    function startAdProcess() {
+        if(adOverlay) adOverlay.style.display = 'flex';
+        if(adCloseBtn) adCloseBtn.style.display = 'none'; 
         
-            // Abre o popup
-            modal.style.display = 'flex';
-            resetModal();
+        let timeLeft = 5;
+        if(adCountdown) adCountdown.innerText = timeLeft;
 
-            // 2. Simula a barra enchendo (Mágica visual)
-            let width = 0;
-            const interval = setInterval(() => {
-                // Só enche até 90% enquanto o servidor pensa
-                if (width >= 90) {
-                    clearInterval(interval);
-                } else {
-                    width += Math.random() * 5; // Sobe aleatoriamente
-                    if(width > 90) width = 90;
-                    updateProgress(width);
+        adInterval = setInterval(() => {
+            timeLeft--;
+            if(adCountdown) adCountdown.innerText = timeLeft;
+if (timeLeft <= 0) {
+                clearInterval(window.adInterval);
+                
+                // --- APAGUE A LINHA ANTIGA E COLE ISSO AQUI: ---
+                // Isso pega a "caixa pai" da frase inteira e substitui tudo
+                const timerFrase = document.querySelector('.ad-timer');
+                if(timerFrase) {
+                    timerFrase.innerHTML = "Download Liberado! 🔓";
+                    timerFrase.style.color = "#2ecc71"; // Verde (opcional)
                 }
-            }, 300);
+                // -----------------------------------------------
 
-            // 3. Envia o pedido para o Python (Servidor)
-            const formData = new FormData(form);
+                if(adCloseBtn) adCloseBtn.style.display = 'block'; 
+            }
+        }, 1000);
+    }
+
+    function closeAdAndDownload() {
+        if(adOverlay) adOverlay.style.display = 'none';
+        
+        // Ganha 1 crédito (para o próximo download ser grátis)
+        downloadCredits = 1; 
+        localStorage.setItem('downloadCredits', downloadCredits);
+        
+        executeRealDownload();
+    }
+
+    // --- SEU CÓDIGO ANTIGO FOI MOVIDO PARA CÁ ---
+    function executeRealDownload() {
+        // 1. Lógica do Histórico (Copiada do seu código original)
+        const urlInput = document.getElementById('urlInput').value;
+        const historyToggle = document.getElementById('historyToggle');
+        
+        if (historyToggle && historyToggle.checked && urlInput.trim() !== "") {
+            let history = JSON.parse(localStorage.getItem('downloadHistory') || '[]');
+            if(history[0] !== urlInput) {
+                history.unshift(urlInput);
+                if(history.length > 5) history.pop();
+                localStorage.setItem('downloadHistory', JSON.stringify(history));
+            }
+        }
+
+        // 2. Abre Popup e inicia Barra de Progresso
+        const modal = document.getElementById('downloadModal');
+        modal.style.display = 'flex';
+        resetModal();
+
+        let width = 0;
+        const progressBar = document.getElementById('progressBar');
+        const interval = setInterval(() => {
+            if (width >= 90) {
+                clearInterval(interval);
+            } else {
+                width += Math.random() * 5;
+                if(width > 90) width = 90;
+                updateProgress(width);
+            }
+        }, 300);
+
+        // 3. Envia para o Python (Fetch)
+        const formData = new FormData(document.getElementById('downloadForm')); // Pega o form direto pelo ID
+        
+        fetch('/download', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) return response.blob();
+            else throw new Error('Erro no download');
+        })
+        .then(blob => {
+            // 4. Sucesso
+            clearInterval(interval);
+            updateProgress(100);
+            showSuccess();
+
+            // Lógica do Nome do Arquivo
+            const formatoInput = document.querySelector('input[name="format"]:checked');
+            const formato = formatoInput ? formatoInput.value : 'best';
+            let nomeFinal = "video_fastsave.mp4";
+            if (formato === 'mp3') nomeFinal = "audio_fastsave.mp3";
+
+            // Baixa o arquivo no navegador
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = nomeFinal;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            // 5. Erro
+            clearInterval(interval);
+            const modalTitle = document.getElementById('modalTitle');
+            const closeBtn = document.getElementById('closeBtn');
+            const statusText = document.getElementById('statusText');
             
-            fetch('/download', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.blob(); // Recebe o arquivo
-                } else {
-                    throw new Error('Erro no download');
-                }
-            })
-           .then(blob => {
-                // 4. Sucesso! Completa a barra para 100%
-                clearInterval(interval);
-                updateProgress(100);
-                showSuccess();
-
-                // --- CÓDIGO NOVO (LÓGICA DO NOME) ---
-                
-                // 1. Descobre qual formato foi escolhido no menu
-                const formatoInput = document.querySelector('input[name="format"]:checked');
-                const formato = formatoInput ? formatoInput.value : 'best';
-
-                // 2. Define o nome padrão como Vídeo MP4
-                let nomeFinal = "video_fastsave.mp4";
-
-                // 3. Se a pessoa escolheu MP3, muda a extensão
-                if (formato === 'mp3') {
-                    nomeFinal = "audio_fastsave.mp3";
-                }
-
-                // Faz o navegador baixar o arquivo recebido
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                
-                // Usa a variável 'nomeFinal' em vez do texto fixo
-                a.download = nomeFinal; 
-                
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            })
-            .catch(error => {
-                // Se der erro
-                clearInterval(interval);
-                modalTitle.innerText = "Erro ao baixar";
-                modalTitle.style.color = "#ff4757";
-                statusText.innerText = "Verifique o link e tente novamente.";
-                progressBar.style.background = "#ff4757";
+            modalTitle.innerText = "Erro ao baixar";
+            modalTitle.style.color = "#ff4757";
+            statusText.innerText = "Verifique o link e tente novamente.";
+            if(progressBar) progressBar.style.background = "#ff4757";
+            if(closeBtn) {
                 closeBtn.style.display = 'block';
                 closeBtn.innerText = "Tentar Novamente";
-            });
+            }
         });
     }
 
@@ -1850,6 +2048,9 @@
                 const toggle = document.getElementById('darkModeToggle');
                 if(toggle) toggle.checked = true;
             }
+       // --- ADICIONE ESTA LINHA AQUI EMBAIXO: ---
+            changePlatform('TikTok'); 
+            // Isso força o site a aplicar as regras do TikTok (travar o cadeado) assim que abrir.
         });
 
         // 4. Limpar Dados
